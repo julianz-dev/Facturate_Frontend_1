@@ -232,7 +232,7 @@
 
 .clients-admin-table {
     width: 100%;
-    min-width: 760px;
+    min-width: 1120px;
     margin: 0;
     border-collapse: collapse;
     color: var(--gris-oscuro);
@@ -270,17 +270,46 @@
     background-color: #f8fbfd;
 }
 
+/* ID */
 .clients-admin-table th:first-child,
 .clients-admin-table td:first-child {
-    width: 75px;
+    width: 65px;
     white-space: nowrap;
 }
 
+/* Nombre o razón social */
+.clients-admin-table th:nth-child(2),
+.clients-admin-table td:nth-child(2) {
+    min-width: 230px;
+}
+
+/* Tipo de documento: permite que los nombres largos ocupen dos líneas. */
+.clients-admin-table th:nth-child(3),
+.clients-admin-table td:nth-child(3) {
+    min-width: 225px;
+}
+
+.clients-admin-table td:nth-child(3) {
+    white-space: normal;
+}
+
+/* Número de documento */
+.clients-admin-table th:nth-child(4),
+.clients-admin-table td:nth-child(4) {
+    min-width: 150px;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Tipo de cliente y estado */
 .clients-admin-table th:nth-child(5),
-.clients-admin-table td:nth-child(5) {
+.clients-admin-table td:nth-child(5),
+.clients-admin-table th:nth-child(6),
+.clients-admin-table td:nth-child(6) {
     white-space: nowrap;
 }
 
+/* Acciones */
 .clients-admin-table th:last-child,
 .clients-admin-table td:last-child {
     min-width: 170px;

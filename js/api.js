@@ -3,10 +3,10 @@
 //* ========================================
 
 // URL base para clientes y productos (Julian)
-const baseUrlCatalogos = "https://6adcddc5fa5e73d4ab2dc4c9.mockapi.io/api/v1";
+const baseUrlCatalogos = "https://6adcddc5fa5e73d4ab2dc4c9.mockapi.io/api/facturate/v1";
 
 // URL base para ventas y detalles de venta (Cristian)
-const baseUrlVentas = "https://6adcddc0fa5e73d4ab2dc4b1.mockapi.io/Facturate/api";
+const baseUrlVentas = "https://6af8f0a56d8b86fb22d6c142.mockapi.io/facturate/v1";
 
 //* ========================================
 //* ENDPOINTS DE CLIENTES Y PRODUCTOS
@@ -19,8 +19,8 @@ export const apiProductos = `${baseUrlCatalogos}/productos`;
 //* ENDPOINTS DE VENTAS Y DETALLES
 //* ========================================
 
-export const apiVentas = `${baseUrlVentas}/Ventas`;
-export const apiDetallesVenta = `${baseUrlVentas}/Detalles_Venta`;
+export const apiVentas = `${baseUrlVentas}/ventas`;
+export const apiDetallesVenta = `${baseUrlVentas}/detalles_venta`;
 
 //* ========================================
 //* FUNCIÓN GENERAL PARA CONSULTAR LA API

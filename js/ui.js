@@ -70,14 +70,19 @@ export function mostrarTablaClientes(clientes) {
         celdaNombre.textContent =
             cliente.nombre_razon_social ?? "Cliente sin nombre";
 
-        // Documento
-        const celdaDocumento = document.createElement("td");
-        const documento = cliente.es_generico
+        // Tipo de documento
+        const celdaTipoDocumento = document.createElement("td");
+
+        celdaTipoDocumento.textContent = cliente.es_generico
             ? "No aplica"
-            : [cliente.tipo_documento, cliente.numero_documento]
-                .filter(Boolean)
-                .join(" ") || "Sin documento";
-        celdaDocumento.textContent = documento;
+            : cliente.tipo_documento ?? "Sin tipo";
+
+        // Número de documento
+        const celdaNumeroDocumento = document.createElement("td");
+
+        celdaNumeroDocumento.textContent = cliente.es_generico
+            ? "—"
+            : cliente.numero_documento ?? "Sin número";
 
         // Tipo de cliente
         const celdaTipo = document.createElement("td");
@@ -166,7 +171,8 @@ export function mostrarTablaClientes(clientes) {
         fila.append(
             celdaId,
             celdaNombre,
-            celdaDocumento,
+            celdaTipoDocumento,
+            celdaNumeroDocumento,
             celdaTipo,
             celdaEstado,
             celdaAcciones,

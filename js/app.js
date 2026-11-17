@@ -167,7 +167,22 @@ if (accesoAutorizado) {
 
     if (buscarProducto) {
 
-        buscarProducto.addEventListener("input", aplicarFiltroProductos);
+        buscarProducto.addEventListener("input", () => {
+
+            // Mostrar automáticamente el catálogo cuando el usuario busca.
+            // Así los resultados del filtro no quedan dentro de una sección oculta.
+            if (contenedorCatalogo) {
+                contenedorCatalogo.hidden = false;
+            }
+
+            if (btnAlternarCatalogo) {
+                btnAlternarCatalogo.textContent = "Ocultar productos";
+                btnAlternarCatalogo.setAttribute("aria-expanded", "true");
+            }
+
+            aplicarFiltroProductos();
+
+        });
 
     }
 
@@ -495,11 +510,35 @@ if (accesoAutorizado) {
 
     }
 
-    function esClienteEmpresa(cliente) {
+    //* ========================================
+    //* MOSTRAR LOS TIPOS DE DOCUMENTO COMPLETOS
+    //* ========================================
 
-        return String(cliente.tipo_documento ?? "")
-            .trim()
-            .toUpperCase() === "NIT";
+    const nombresTiposDocumento = new Map([
+        ["CC", "Cédula de Ciudadanía (CC)"],
+        ["PA", "Pasaporte (PA)"],
+        ["PPT", "Permiso por Protección Temporal (PPT)"],
+        ["PEP", "Permiso Especial de Permanencia (PEP)"],
+        ["CE", "Cédula de Extranjería (CE)"],
+        ["TE", "Tarjeta de Extranjería (TE)"],
+        ["NIT", "NIT"],
+        ["CEDULA DE CIUDADANIA (CC)", "Cédula de Ciudadanía (CC)"],
+        ["PASAPORTE (PA)", "Pasaporte (PA)"],
+        ["PERMISO POR PROTECCION TEMPORAL (PPT)", "Permiso por Protección Temporal (PPT)"],
+        ["PERMISO ESPECIAL DE PERMANENCIA (PEP)", "Permiso Especial de Permanencia (PEP)"],
+        ["CEDULA DE EXTRANJERIA (CE)", "Cédula de Extranjería (CE)"],
+        ["TARJETA DE EXTRANJERIA (TE)", "Tarjeta de Extranjería (TE)"],
+    ]);
+
+    function obtenerTipoDocumentoVisible(tipoDocumento) {
+
+        const tipoOriginal = String(tipoDocumento ?? "Documento").trim();
+        const tipoNormalizado = tipoOriginal
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toUpperCase();
+
+        return nombresTiposDocumento.get(tipoNormalizado) ?? tipoOriginal;
 
     }
 
@@ -515,7 +554,7 @@ if (accesoAutorizado) {
             return "Cliente genérico";
         }
 
-        const tipoDocumento = String(cliente.tipo_documento ?? "Documento").trim();
+        const tipoDocumento = obtenerTipoDocumentoVisible(cliente.tipo_documento);
         const numeroDocumento = String(cliente.numero_documento ?? "Sin número").trim();
 
         return `${tipoDocumento}: ${numeroDocumento}`;
@@ -530,29 +569,27 @@ if (accesoAutorizado) {
             return clientesActivos;
         }
 
+        // Normalizar el término para permitir búsquedas con o sin espacios,
+        // puntos o guiones en los números y tipos de documento.
         const documentoBuscado = normalizarDocumentoCliente(termino);
 
         return clientesActivos.filter((cliente) => {
 
-            // Las empresas (NIT) se localizan por nombre o razón social.
-            if (esClienteEmpresa(cliente)) {
-                return normalizarTextoCliente(
-                    obtenerNombreVisibleCliente(cliente),
-                ).includes(texto);
-            }
+            // Buscar por nombre o razón social para personas y empresas.
+            const nombreCliente = normalizarTextoCliente(
+                obtenerNombreVisibleCliente(cliente),
+            );
 
-            // El cliente genérico no tiene documento; se puede localizar por su nombre.
-            if (cliente.es_generico === true) {
-                return normalizarTextoCliente(
-                    obtenerNombreVisibleCliente(cliente),
-                ).includes(texto);
-            }
+            // Buscar también por tipo y número de documento (CC, CE, NIT, etc.).
+            const documentoCliente = normalizarDocumentoCliente(
+                `${cliente.tipo_documento ?? ""} ${cliente.numero_documento ?? ""}`,
+            );
 
-            // Las personas se localizan por número de documento (CC/CE),
-            // ignorando puntos, espacios y guiones.
-            return documentoBuscado !== "" && normalizarDocumentoCliente(
-                cliente.numero_documento,
-            ).includes(documentoBuscado);
+            const coincideNombre = nombreCliente.includes(texto);
+            const coincideDocumento = documentoBuscado !== "" &&
+                documentoCliente.includes(documentoBuscado);
+
+            return coincideNombre || coincideDocumento;
 
         });
 

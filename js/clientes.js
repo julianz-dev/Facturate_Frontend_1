@@ -106,6 +106,102 @@ function inicializarModuloClientes() {
     );
 
     //* ========================================
+    //* NORMALIZAR TIPOS DE DOCUMENTO
+    //* ========================================
+
+    // El formulario trabaja con códigos cortos. Se aceptan también los nombres
+    // completos que ya existen en los registros importados anteriormente.
+    const equivalenciasTiposDocumento = new Map([
+        ["CC", "CC"],
+        ["CEDULA DE CIUDADANIA", "CC"],
+        ["CEDULA DE CIUDADANIA (CC)", "CC"],
+        ["PA", "PA"],
+        ["PASAPORTE", "PA"],
+        ["PASAPORTE (PA)", "PA"],
+        ["PPT", "PPT"],
+        ["PERMISO POR PROTECCION TEMPORAL", "PPT"],
+        ["PERMISO POR PROTECCION TEMPORAL (PPT)", "PPT"],
+        ["PEP", "PEP"],
+        ["PERMISO ESPECIAL DE PERMANENCIA", "PEP"],
+        ["PERMISO ESPECIAL DE PERMANENCIA (PEP)", "PEP"],
+        ["CE", "CE"],
+        ["CEDULA DE EXTRANJERIA", "CE"],
+        ["CEDULA DE EXTRANJERIA (CE)", "CE"],
+        ["TE", "TE"],
+        ["TARJETA DE EXTRANJERIA", "TE"],
+        ["TARJETA DE EXTRANJERIA (TE)", "TE"],
+        ["NIT", "NIT"],
+    ]);
+
+    const tiposDocumentoPermitidos = new Set([
+        "CC",
+        "PA",
+        "PPT",
+        "PEP",
+        "CE",
+        "TE",
+        "NIT",
+    ]);
+
+    const nombresTiposDocumento = new Map([
+        ["CC", "Cédula de Ciudadanía (CC)"],
+        ["PA", "Pasaporte (PA)"],
+        ["PPT", "Permiso por Protección Temporal (PPT)"],
+        ["PEP", "Permiso Especial de Permanencia (PEP)"],
+        ["CE", "Cédula de Extranjería (CE)"],
+        ["TE", "Tarjeta de Extranjería (TE)"],
+        ["NIT", "NIT"],
+    ]);
+
+    function normalizarTipoDocumento(valor) {
+
+        const tipoNormalizado = String(valor ?? "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .trim()
+            .toUpperCase();
+
+        return equivalenciasTiposDocumento.get(tipoNormalizado) ?? tipoNormalizado;
+
+    }
+
+    function obtenerNombreTipoDocumento(valor) {
+
+        const codigo = normalizarTipoDocumento(valor);
+        return nombresTiposDocumento.get(codigo) ?? String(valor ?? "Documento");
+
+    }
+
+    //* ========================================
+    //* ACEPTAR ÚNICAMENTE DÍGITOS EN DOCUMENTO
+    //* ========================================
+
+    // Se conserva como texto para no perder posibles ceros iniciales.
+    elementos.numeroDocumento.type = "text";
+    elementos.numeroDocumento.inputMode = "numeric";
+    elementos.numeroDocumento.pattern = "[0-9]+";
+    elementos.numeroDocumento.title = "Ingresa únicamente números del 0 al 9.";
+
+    elementos.numeroDocumento.addEventListener("input", () => {
+
+        const valorOriginal = elementos.numeroDocumento.value;
+        const posicionCursor = elementos.numeroDocumento.selectionStart ?? valorOriginal.length;
+        const valorNumerico = valorOriginal.replace(/[^0-9]/g, "");
+
+        if (valorOriginal !== valorNumerico) {
+
+            const nuevaPosicion = valorOriginal
+                .slice(0, posicionCursor)
+                .replace(/[^0-9]/g, "").length;
+
+            elementos.numeroDocumento.value = valorNumerico;
+            elementos.numeroDocumento.setSelectionRange(nuevaPosicion, nuevaPosicion);
+
+        }
+
+    });
+
+    //* ========================================
     //* CONFIGURACIÓN INICIAL DEL FORMULARIO
     //* ========================================
 
@@ -219,7 +315,16 @@ function inicializarModuloClientes() {
 
         });
 
-        mostrarTablaClientes(clientesFiltrados);
+        // Presentar siempre la nomenclatura completa, aunque el registro
+        // importado contenga un nombre largo y uno nuevo utilice el código corto.
+        const clientesParaMostrar = clientesFiltrados.map((cliente) => ({
+            ...cliente,
+            tipo_documento: cliente.es_generico === true
+                ? cliente.tipo_documento
+                : obtenerNombreTipoDocumento(cliente.tipo_documento),
+        }));
+
+        mostrarTablaClientes(clientesParaMostrar);
 
     }
 
@@ -384,12 +489,10 @@ function inicializarModuloClientes() {
                 cliente.cliente_id ?? cliente.id;
 
             const mismoTipo =
-                String(cliente.tipo_documento ?? "")
-                    .trim()
-                    .toUpperCase() === tipoDocumento;
+                normalizarTipoDocumento(cliente.tipo_documento) === tipoDocumento;
 
             const mismoNumero =
-                String(cliente.numero_documento ?? "").trim() ===
+                String(cliente.numero_documento ?? "").replace(/[^0-9]/g, "") ===
                 numeroDocumento;
 
             const esOtroCliente =
@@ -448,12 +551,11 @@ function inicializarModuloClientes() {
 
             const nombreValidado = elementos.nombre.value.trim();
 
-            const tipoDocumentoValidado = elementos.tipoDocumento.value
-                .trim()
-                .toUpperCase();
+            const tipoDocumentoValidado = normalizarTipoDocumento(
+                elementos.tipoDocumento.value,
+            );
 
-            const documentoValidado =
-                elementos.numeroDocumento.value.trim();
+            const documentoValidado = elementos.numeroDocumento.value.trim();
 
 
             // Validar nombre y documento de clientes identificados.
@@ -467,9 +569,19 @@ function inicializarModuloClientes() {
 
             }
 
-            if (!esGenerico && !documentoValidado) {
+            if (!esGenerico && !tiposDocumentoPermitidos.has(tipoDocumentoValidado)) {
 
-                window.alert("Ingresa un número de documento válido.");
+                window.alert("Selecciona un tipo de documento válido.");
+
+                elementos.tipoDocumento.focus();
+
+                return;
+
+            }
+
+            if (!esGenerico && !/^[0-9]+$/.test(documentoValidado)) {
+
+                window.alert("El número de documento solo puede contener dígitos del 0 al 9.");
 
                 elementos.numeroDocumento.focus();
 
@@ -768,11 +880,13 @@ function inicializarModuloClientes() {
             elementos.nombre.value =
                 clienteSeleccionado.nombre_razon_social ?? "";
 
-            elementos.tipoDocumento.value =
-                clienteSeleccionado.tipo_documento ?? "";
+            elementos.tipoDocumento.value = normalizarTipoDocumento(
+                clienteSeleccionado.tipo_documento,
+            );
 
-            elementos.numeroDocumento.value =
-                clienteSeleccionado.numero_documento ?? "";
+            elementos.numeroDocumento.value = String(
+                clienteSeleccionado.numero_documento ?? "",
+            ).replace(/[^0-9]/g, "");
 
             elementos.esGenerico.checked = false;
 

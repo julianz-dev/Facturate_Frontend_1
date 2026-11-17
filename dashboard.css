@@ -53,19 +53,36 @@
 }
 
 .btn-dashboard {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    border: 2px outset #858585;
+    border-radius: 8px;
     background-color: var(--azul-claro);
     color: var(--blanco);
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.5;
+    text-align: center;
     text-decoration: none;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-weight: bold;
-    transition: background-color 0.2s ease;
+    white-space: nowrap;
+    transition: background-color 0.2s ease, transform 0.15s ease;
 }
 
 .btn-dashboard:hover {
     background-color: var(--azul-hover);
     color: var(--blanco);
+}
+
+.btn-dashboard:focus-visible {
+    outline: 3px solid rgba(91, 192, 235, 0.3);
+    outline-offset: 3px;
+}
+
+.btn-dashboard:active {
+    transform: translateY(1px);
 }
 
 /*========================================
@@ -829,4 +846,3 @@
     font-weight: 700;
     white-space: nowrap;
 }
-

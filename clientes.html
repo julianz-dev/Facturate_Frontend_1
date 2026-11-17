@@ -135,7 +135,8 @@
                                 <tr>
                                     <th scope="col">ID</th>
                                     <th scope="col">Nombre o razón social</th>
-                                    <th scope="col">Documento</th>
+                                    <th scope="col">Tipo de documento</th>
+                                    <th scope="col">Número de documento</th>
                                     <th scope="col">Tipo de cliente</th>
                                     <th scope="col">Estado</th>
                                     <th scope="col">Acciones</th>
@@ -144,7 +145,7 @@
 
                             <tbody id="tablaClientes" aria-live="polite">
                                 <tr>
-                                    <td colspan="6" class="empty-table">
+                                    <td colspan="7" class="empty-table">
                                         Los clientes aparecerán aquí cuando se cargue la información.
                                     </td>
                                 </tr>
@@ -243,9 +244,13 @@
                                 </label>
                                 <select id="tipoDocumentoCliente" name="tipo_documento" required>
                                     <option value="" selected disabled>Selecciona un tipo</option>
-                                    <option value="CC">Cédula de ciudadanía (CC)</option>
+                                    <option value="CC">Cédula de Ciudadanía (CC)</option>
+                                    <option value="PA">Pasaporte (PA)</option>
+                                    <option value="PPT">Permiso por Protección Temporal (PPT)</option>
+                                    <option value="PEP">Permiso Especial de Permanencia (PEP)</option>
+                                    <option value="CE">Cédula de Extranjería (CE)</option>
+                                    <option value="TE">Tarjeta de Extranjería (TE)</option>
                                     <option value="NIT">NIT</option>
-                                    <option value="CE">Cédula de extranjería (CE)</option>
                                 </select>
                             </article>
 
